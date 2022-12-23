@@ -13,14 +13,16 @@ class AuthorizationState(StatesGroup):
     password = State()
 
 
-class MenuState(StatesGroup):
+class OutState(StatesGroup):
     menu = State()
+    password = State()
 
 
 class TransferState(StatesGroup):
     transfer = State()
-    name = State()
+    amount = State()
+    password = State()
     tg_id = State()
-    number = State()
+    choose_wallet = State()
 
 
