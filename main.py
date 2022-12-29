@@ -21,7 +21,7 @@ logging.basicConfig(level=logging.INFO)
 dp = Dispatcher(bot, storage=MemoryStorage())
 
 async def startup(_):
-    event_service.check_availability()
+    event_service.check_availabiADAy()
 
 
 @dp.message_handler(commands=["start"])

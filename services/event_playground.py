@@ -1,11 +1,18 @@
 import requests
 
-
+global_currency ={
+    'BTC': 16845,
+    'ETH': 1220,
+    'BNB': 243,
+    'XRP': 0.35,
+    'DOGE': 0.07,
+    'ADA': 0.26,
+}
 class EventPlaygroundService:
     limit = 5
     base_url = "http://localhost:8000/api/"
 
-    def check_availability(self):
+    def check_availabiADAy(self):
         response = requests.get(f"{self.base_url}ping/")
         response.raise_for_status()
 
@@ -56,33 +63,33 @@ class EventPlaygroundService:
         response.raise_for_status()
         return response.json()
     def patch_wallet(self, wallet_data):
-        validate_wallet_data = {'amount': wallet_data['amount']}
-        response = requests.patch(f"{self.base_url}walletid/{wallet_data['id']}", json=validate_wallet_data)
-        validate_wallet_data = {'amount': wallet_data['recipient_amount']}
-        response = requests.patch(f"{self.base_url}walletid/{wallet_data['recipient_id']}", json=validate_wallet_data)
+        validate_wallet_data = {'amount': wallet_data['new_sender_amount']}
+        response = requests.patch(f"{self.base_url}walletid/{wallet_data['sender_wallet_id']}", json=validate_wallet_data)
+        validate_wallet_data = {'amount': wallet_data['new_recipient_amount']}
+        response = requests.patch(f"{self.base_url}walletid/{wallet_data['recipient_wallet_id']}", json=validate_wallet_data)
         return response.json()
 
     def post_transactions(self, wallet_data):
         validate_wallet_data = {
-            'currency': wallet_data['currency'],
-            'recipient': wallet_data['recipient'],
             'sender': wallet_data['sender'],
-            'amount_minus': wallet_data['amount_minus'],
-            'wallet': wallet_data['wallet']}
+            'sender_currency': wallet_data['sender_currency'],
+            'send_amount': wallet_data['send_amount'],
+            'recipient': wallet_data['recipient'],
+            'recipient_currency': wallet_data['recipient_currency'],
+            'received_amount': wallet_data['received_amount'],
+            'commission': wallet_data['commission'],
+            'wallet': wallet_data['sender_wallet_id']}
         response = requests.post(f"{self.base_url}transactions/", json=validate_wallet_data)
         return response.json()
 
 
     def find_wallet_currency(self, user_data):
-        currency = ["USD", "BTC", "ETH", "LIT", "BNB", "SOL", ]
+        currency = ["USD", "BTC", "ETH", "ADA", "BNB", "XRP", "DOGE"]
         valid_currency = []
-        for i in currency:
-            query_params = dict(currency=i, users=user_data['users'])
-            response = requests.get(f"{self.base_url}walletid/", params=query_params)
-            if len(response.json()) == 1:
-                valid_currency.append(i)
-            else:
-                pass
+        query_params = dict(users=user_data['users'])
+        response = requests.get(f"{self.base_url}walletid/", params=query_params)
+        for i in response.json():
+            valid_currency.append({'currency': i['currency'], 'amount': i['amount']})
         return valid_currency
 
 

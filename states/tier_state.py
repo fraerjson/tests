@@ -20,9 +20,11 @@ class OutState(StatesGroup):
 
 class TransferState(StatesGroup):
     transfer = State()
+    sender_currency = State()
     amount = State()
     password = State()
     tg_id = State()
     choose_wallet = State()
+    choose_amount = State()
 
 

@@ -12,6 +12,7 @@ from aiogram import Dispatcher, types
 """
 
 async def authorization(callback: types.CallbackQuery, state: FSMContext):
+    print(callback.data)
     await callback.message.delete()
     await state.set_state(AuthorizationState.number.state)
     await callback.message.answer("Введите номер телефона: ", reply_markup=first_menu_reply())
