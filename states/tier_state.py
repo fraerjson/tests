@@ -28,3 +28,10 @@ class TransferState(StatesGroup):
     choose_amount = State()
 
 
+class WalletState(StatesGroup):
+    amount_wallets = State()
+    add_wallet = State()
+    get_password = State()
+    inf_wallet = State()
+    get_password_delete = State()
+

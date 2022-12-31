@@ -9,7 +9,7 @@ from handlers.default_buttons import global_menu
 from handlers.home import setup as home_handler_setup
 from handlers.transfer import setup as transfer_handler_setup
 from handlers.basic import setup as basic_handler_setup
-from handlers.my_wallets import setup as my_wallets_handler_setup
+from handlers.wallets import setup as my_wallets_handler_setup
 
 
 from services.event_playground import event_service

@@ -15,7 +15,7 @@ async def authorization(callback: types.CallbackQuery, state: FSMContext):
     print(callback.data)
     await callback.message.delete()
     await state.set_state(AuthorizationState.number.state)
-    await callback.message.answer("Введите номер телефона: ", reply_markup=first_menu_reply())
+    await callback.message.answer("Введите номер телефона: ", reply_markup=global_menu_reply())
 
 
 async def get_number(msg: types.Message, state: FSMContext):
@@ -28,7 +28,7 @@ async def get_number(msg: types.Message, state: FSMContext):
         if bool(result) == True:
             await state.update_data(phone_number=msg.text)
             await state.set_state(AuthorizationState.password.state)
-            await msg.answer("Введите свой пароль ")
+            await msg.answer("Введите свой пароль: ")
         else:
             await msg.answer("Введите коректные данные: ")
 
@@ -39,6 +39,7 @@ async def get_password(msg: types.Message, state: FSMContext):
         await state.finish()
     else:
         password = hashlib.sha256(msg.text.encode())
+        await msg.delete()
         await state.update_data(password=password.hexdigest())
         authorization_data = await state.get_data()
         user = event_service.authorization(authorization_data)
@@ -58,9 +59,15 @@ async def get_password(msg: types.Message, state: FSMContext):
 
 
 async def registration(callback: types.CallbackQuery, state: FSMContext):
-    await state.set_state(RegistrationState.name.state)
-    await callback.message.delete()
-    await callback.message.answer("Введите никнэйм: ", reply_markup=first_menu_reply())
+    user_data = {'tg_id': callback.from_user.id}
+    user_response = event_service.get_user_data_from_user_id(user_data)
+    if len(user_response) == 0:
+        await state.set_state(RegistrationState.name.state)
+        await callback.message.delete()
+        await callback.message.answer("Введите никнэйм: ", reply_markup=global_menu_reply())
+    else:
+        await callback.message.delete()
+        await callback.message.answer("На ваш айди уже зарегестрирован пользователь, пожалуйста войдите в свою учетную запись", reply_markup=first_menu())
 
 
 async def get_name(msg: types.Message, state: FSMContext):
@@ -108,10 +115,17 @@ async def get_aut_password(msg: types.Message, state: FSMContext):
         await state.finish()
     else:
         password = hashlib.sha256(msg.text.encode())
+        await msg.delete()
         await state.update_data(password=password.hexdigest())
         await state.update_data(tg_id=msg.from_user.id)
         user_data = await state.get_data()
         user = event_service.create_user(user_data)
+        wallet_data = {
+            "currency": "USD",
+            "amount": 100000,
+            "users": user['id']
+        }
+        wallet = event_service.add_wallet(wallet_data)
         await msg.answer('Проверка', reply_markup=types.ReplyKeyboardRemove())
         await msg.answer("Рады приветствовать вас в этой поеботине вот наше меню:", reply_markup=global_menu())
         await state.finish()

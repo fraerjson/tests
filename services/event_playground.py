@@ -52,8 +52,8 @@ class EventPlaygroundService:
         response.raise_for_status()
         return response.json()
 
-    def find_wallet(self, user_data):
-        query_params = dict(currency=user_data['currency'], users=user_data['users'])
+    def find_wallet(self, wallet_data):
+        query_params = dict(currency=wallet_data['currency'], users=wallet_data['users'])
         response = requests.get(f"{self.base_url}walletid/", params=query_params)
         response.raise_for_status()
         return response.json()
@@ -91,6 +91,18 @@ class EventPlaygroundService:
         for i in response.json():
             valid_currency.append({'currency': i['currency'], 'amount': i['amount']})
         return valid_currency
+
+    def add_wallet(self, wallet_data):
+        validate_wallet_data = {
+            'currency': wallet_data['currency'],
+            'users': wallet_data['users'],
+            'amount': wallet_data['amount'],
+        }
+        response = requests.post(f"{self.base_url}wallets/", json=validate_wallet_data)
+        return response.json()
+
+    def delete_wallet(self, wallet_data):
+        response = requests.delete(f"{self.base_url}walletid/{wallet_data['wallet_id']}", )
 
 
 event_service = EventPlaygroundService()

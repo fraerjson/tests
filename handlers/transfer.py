@@ -48,31 +48,31 @@ async def sender_currency(message: types.Message, state: FSMContext):
     elif recipient_currency == "USD":
         await state.update_data(sender_currency="USD")
         await state.set_state(TransferState.tg_id.state)
-        await message.answer("Введите айди получателя:", reply_markup=first_menu_reply())
+        await message.answer("Введите айди получателя:", reply_markup=global_menu_reply())
     elif recipient_currency == "BTC":
         await state.update_data(sender_currency="BTC")
         await state.set_state(TransferState.tg_id.state)
-        await message.answer("Введите айди получателя:", reply_markup=first_menu_reply())
+        await message.answer("Введите айди получателя:", reply_markup=global_menu_reply())
     elif recipient_currency == "ETH":
         await state.update_data(sender_currency="ETH")
         await state.set_state(TransferState.tg_id.state)
-        await message.answer("Введите айди получателя:", reply_markup=first_menu_reply())
+        await message.answer("Введите айди получателя:", reply_markup=global_menu_reply())
     elif recipient_currency == "ADA":
         await state.update_data(sender_currency="ADA")
         await state.set_state(TransferState.tg_id.state)
-        await message.answer("Введите айди получателя:", reply_markup=first_menu_reply())
+        await message.answer("Введите айди получателя:", reply_markup=global_menu_reply())
     elif recipient_currency == "BNB":
         await state.update_data(sender_currency="BNB")
         await state.set_state(TransferState.tg_id.state)
-        await message.answer("Введите айди получателя:", reply_markup=first_menu_reply())
+        await message.answer("Введите айди получателя:", reply_markup=global_menu_reply())
     elif recipient_currency == "XRP":
         await state.update_data(sender_currency="XRP")
         await state.set_state(TransferState.tg_id.state)
-        await message.answer("Введите айди получателя:", reply_markup=first_menu_reply())
+        await message.answer("Введите айди получателя:", reply_markup=global_menu_reply())
     elif recipient_currency == "DOGE":
         await state.update_data(sender_currency="DOGE")
         await state.set_state(TransferState.tg_id.state)
-        await message.answer("Введите айди получателя:", reply_markup=first_menu_reply())
+        await message.answer("Введите айди получателя:", reply_markup=global_menu_reply())
     else:
         await message.answer("Такого варианта ответа нету")
 
@@ -104,7 +104,7 @@ async def get_transfer_id(message: types.Message, state: FSMContext):
                 await state.update_data(sender_amount=i['amount'])
             await state.set_state(TransferState.choose_wallet.state)
         else:
-            await message.answer("Пользователя с таким айди нету, пожалуйста введите коректный айди: ", reply_markup=first_menu_reply())
+            await message.answer("Пользователя с таким айди нету, пожалуйста введите коректный айди: ", reply_markup=global_menu_reply())
 
 
 async def recipient_currency(message: types.Message, state: FSMContext):
@@ -175,7 +175,7 @@ async def recipient_currency(message: types.Message, state: FSMContext):
         for i in recipient_response:
             await state.update_data(recipient_wallet_id=i['id'])
             await state.update_data(recipient_amount=i['amount'])
-    elif recipient_currency == "DOGE":
+    elif recipient_currency == "XRP":
         await state.set_state(TransferState.amount.state)
         await state.update_data(recipient_currency="XRP")
         get_data = await state.get_data()
@@ -260,6 +260,7 @@ async def get_password_tr(message: types.Message, state: FSMContext):
         await state.finish()
     else:
         password = hashlib.sha256(message.text.encode())
+        await message.delete()
         wallet_data = await state.get_data()
         user_data = {'password': password.hexdigest(), 'tg_id': message.from_user.id}
         users_response = event_service.check_transaction_password(user_data)
@@ -290,13 +291,14 @@ async def get_password_tr(message: types.Message, state: FSMContext):
                 elif sender_tier == "A":
                     commission = 0
                     await state.update_data(commission=commission)
-                await state.update_data(received_amount=float("{0:.4f}".format(usd_recipient - commission)))
                 res_currency_amount = global_currency[f'{get_data["recipient_currency"]}']
                 new_recipient_amount = usd_recipient / res_currency_amount
+
                 new_recipient_amount = new_recipient_amount + get_data['recipient_amount']
                 await state.update_data(new_recipient_amount=float("{0:.4f}".format(new_recipient_amount)))
-                users_response_wallet = event_service.patch_wallet(wallet_data)
+                await state.update_data(received_amount=float("{0:.4f}".format((usd_recipient - commission) / res_currency_amount) ))
                 wallet_data = await state.get_data()
+
                 users_response_wallet = event_service.patch_wallet(wallet_data)
                 users_response_wallet = event_service.post_transactions(wallet_data)
                 await message.answer("Транзакция произошла успешно!", reply_markup=types.ReplyKeyboardRemove())
@@ -317,16 +319,9 @@ def setup(dp: Dispatcher):
     ПЕРЕВОД
     """
     dp.register_callback_query_handler(return_user, Text(equals="return_user"))
-    # dp.register_callback_query_handler(translation,
-    #                                    Text(equals="translation") or
-    #                                    Text(equals="transaction_history") or
-    #                                    Text(equals="main")
-    #                                    )
     dp.register_callback_query_handler(translation, Text(equals="translation"))
     dp.register_callback_query_handler(translation, Text(equals="transaction_history"))
     dp.register_callback_query_handler(translation, Text(equals="main"))
-
-
 
     dp.register_message_handler(sender_currency, state=TransferState.sender_currency)
     dp.register_message_handler(get_transfer_id, state=TransferState.tg_id)
