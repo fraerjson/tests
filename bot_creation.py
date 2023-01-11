@@ -5,3 +5,4 @@ from dotenv import load_dotenv
 
 load_dotenv()
 bot = Bot(token=os.environ["BOT_TOKEN"])
+# 1
