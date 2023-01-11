@@ -13,12 +13,13 @@ def global_menu():
     return menu_kb
 
 
-def main_button():
+def basic_button():
     menu_kb = types.InlineKeyboardMarkup(row_width=1)
-    menu_kb.add(types.InlineKeyboardButton("Изменение пароля", callback_data="сhange_password"))
+    menu_kb.add(types.InlineKeyboardButton("Измененить никнэйм", callback_data="сhange_nickname"))
+    menu_kb.add(types.InlineKeyboardButton("Измененить пароля", callback_data="сhange_password"))
     menu_kb.add(types.InlineKeyboardButton("Выход", callback_data="out"))
+    menu_kb.add(types.InlineKeyboardButton("В меня пользователя", callback_data='return_user'))
     return menu_kb
-
 
 
 def global_menu_reply():

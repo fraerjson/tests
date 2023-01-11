@@ -14,8 +14,11 @@ class AuthorizationState(StatesGroup):
 
 
 class OutState(StatesGroup):
-    menu = State()
+    out = State()
+    password_nickname = State()
     password = State()
+    niew_password = State()
+    niew_nickname = State()
 
 
 class TransferState(StatesGroup):
@@ -34,4 +37,8 @@ class WalletState(StatesGroup):
     get_password = State()
     inf_wallet = State()
     get_password_delete = State()
+
+
+class TransactionHistory(StatesGroup):
+    update_list = State()
 

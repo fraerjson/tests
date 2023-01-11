@@ -1,6 +1,6 @@
 import hashlib
 
-from aiogram import Dispatcher, types
+from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 
@@ -28,7 +28,7 @@ async def wallets(callback: types.CallbackQuery, state: FSMContext):
         )
     inline_kb.add(types.InlineKeyboardButton("Добавить кошелек", callback_data="add_wallet"))
     inline_kb.add(types.InlineKeyboardButton("В меня пользователя", callback_data='return_user'))
-    await callback.message.answer("Меню", reply_markup=inline_kb)
+    await callback.message.answer(f"Ваш айди - {callback.from_user.id}", reply_markup=inline_kb)
 
 
 async def add_wallet(callback: types.CallbackQuery, state: FSMContext):
@@ -63,7 +63,7 @@ async def add_currency(callback: types.CallbackQuery, state: FSMContext):
     for i in users_response:
         user_data = {'users': i['id']}
         await state.update_data(users=i['id'])
-    await callback.message.answer("Для обавления кошелька введите пароль: ")
+    await callback.message.answer("Для добавления кошелька введите пароль: ")
 
 
 async def get_password_for_wallet(message: types.Message, state: FSMContext):
@@ -142,33 +142,34 @@ def setup(dp: Dispatcher):
     """
     МОИ КОШЕЛЬКИ
     """
-    dp.register_callback_query_handler(return_user, Text(contains="return_user"))
+    dp.register_callback_query_handler(wallets, Text(equals="wallets"))
 
-    dp.register_callback_query_handler(delete_wallet, Text(contains="delete_wallet_USD"))
-    dp.register_callback_query_handler(delete_wallet, Text(contains="delete_wallet_BTC"))
-    dp.register_callback_query_handler(delete_wallet, Text(contains="delete_wallet_ETH"))
-    dp.register_callback_query_handler(delete_wallet, Text(contains="delete_wallet_ADA"))
-    dp.register_callback_query_handler(delete_wallet, Text(contains="delete_wallet_BNB"))
-    dp.register_callback_query_handler(delete_wallet, Text(contains="delete_wallet_XRP"))
-    dp.register_callback_query_handler(delete_wallet, Text(contains="delete_wallet_DOGE"))
+    dp.register_callback_query_handler(return_user, Text(equals="return_user"))
 
-    dp.register_callback_query_handler(wallets, Text(contains="wallets"))
-    dp.register_callback_query_handler(add_wallet, Text(contains="add_wallet"))
-    dp.register_callback_query_handler(add_currency, Text(contains="addusd"))
-    dp.register_callback_query_handler(add_currency, Text(contains="addbtc"))
-    dp.register_callback_query_handler(add_currency, Text(contains="addeth"))
-    dp.register_callback_query_handler(add_currency, Text(contains="addada"))
-    dp.register_callback_query_handler(add_currency, Text(contains="addbnb"))
-    dp.register_callback_query_handler(add_currency, Text(contains="addxrp"))
-    dp.register_callback_query_handler(add_currency, Text(contains="adddoge"))
+    dp.register_callback_query_handler(delete_wallet, Text(equals="delete_wallet_USD"))
+    dp.register_callback_query_handler(delete_wallet, Text(equals="delete_wallet_BTC"))
+    dp.register_callback_query_handler(delete_wallet, Text(equals="delete_wallet_ETH"))
+    dp.register_callback_query_handler(delete_wallet, Text(equals="delete_wallet_ADA"))
+    dp.register_callback_query_handler(delete_wallet, Text(equals="delete_wallet_BNB"))
+    dp.register_callback_query_handler(delete_wallet, Text(equals="delete_wallet_XRP"))
+    dp.register_callback_query_handler(delete_wallet, Text(equals="delete_wallet_DOGE"))
 
-    dp.register_callback_query_handler(inf_wallet, Text(contains="infusd"))
-    dp.register_callback_query_handler(inf_wallet, Text(contains="infbtc"))
-    dp.register_callback_query_handler(inf_wallet, Text(contains="infeth"))
-    dp.register_callback_query_handler(inf_wallet, Text(contains="infada"))
-    dp.register_callback_query_handler(inf_wallet, Text(contains="infbnb"))
-    dp.register_callback_query_handler(inf_wallet, Text(contains="infxrp"))
-    dp.register_callback_query_handler(inf_wallet, Text(contains="infdoge"))
+    dp.register_callback_query_handler(add_wallet, Text(equals="add_wallet"))
+    dp.register_callback_query_handler(add_currency, Text(equals="addusd"))
+    dp.register_callback_query_handler(add_currency, Text(equals="addbtc"))
+    dp.register_callback_query_handler(add_currency, Text(equals="addeth"))
+    dp.register_callback_query_handler(add_currency, Text(equals="addada"))
+    dp.register_callback_query_handler(add_currency, Text(equals="addbnb"))
+    dp.register_callback_query_handler(add_currency, Text(equals="addxrp"))
+    dp.register_callback_query_handler(add_currency, Text(equals="adddoge"))
+
+    dp.register_callback_query_handler(inf_wallet, Text(equals="infusd"))
+    dp.register_callback_query_handler(inf_wallet, Text(equals="infbtc"))
+    dp.register_callback_query_handler(inf_wallet, Text(equals="infeth"))
+    dp.register_callback_query_handler(inf_wallet, Text(equals="infada"))
+    dp.register_callback_query_handler(inf_wallet, Text(equals="infbnb"))
+    dp.register_callback_query_handler(inf_wallet, Text(equals="infxrp"))
+    dp.register_callback_query_handler(inf_wallet, Text(equals="infdoge"))
 
     dp.register_message_handler(get_password_for_wallet, state=WalletState.get_password)
     dp.register_message_handler(get_password_for_delete_wallet, state=WalletState.get_password_delete)

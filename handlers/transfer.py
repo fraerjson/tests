@@ -1,11 +1,14 @@
 import hashlib
-from handlers.home import *
-from handlers.default_buttons import *
+
+from aiogram.dispatcher.filters import Text
+from aiogram.types import KeyboardButton
+
+from handlers.default_buttons import global_menu, global_menu_reply, amount_reply
 from aiogram.dispatcher import FSMContext
 
 from services.event_playground import event_service
 from states.tier_state import TransferState
-from aiogram import types
+from aiogram import types, Dispatcher
 
 global_currency ={
     'USD': 1,
@@ -29,52 +32,44 @@ async def translation(callback: types.CallbackQuery, state: FSMContext):
     users_response = event_service.find_wallet_currency(user_data)
 
     await callback.message.delete()
-    inline_kb = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True, one_time_keyboard=True)
+    inline_kb = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+
     for i in users_response:
         inline_kb.add(
-            types.KeyboardButton(f"{i['currency']}")
+            types.KeyboardButton(f"{i['currency']} - {i['amount']}")
         )
     inline_kb.add(types.KeyboardButton("В меню пользователя"))
     await callback.message.answer("С какого кошелька будете переводить?", reply_markup=inline_kb)
     await state.set_state(TransferState.sender_currency)
 
+
 async def sender_currency(message: types.Message, state: FSMContext):
-    recipient_currency = message.text
-    if recipient_currency == "В меню пользователя":
+    sender_currency = message.text
+    currency = ["USD", "BTC", "ETH", "ADA", "BNB", "XRP", "DOGE"]
+    qwe = False
+    if sender_currency == "В меню пользователя":
         await state.finish()
         await message.answer("Транзакция прервана", reply_markup=types.ReplyKeyboardRemove())
         await message.answer("Меню пользователя", reply_markup=global_menu())
-
-    elif recipient_currency == "USD":
-        await state.update_data(sender_currency="USD")
-        await state.set_state(TransferState.tg_id.state)
-        await message.answer("Введите айди получателя:", reply_markup=global_menu_reply())
-    elif recipient_currency == "BTC":
-        await state.update_data(sender_currency="BTC")
-        await state.set_state(TransferState.tg_id.state)
-        await message.answer("Введите айди получателя:", reply_markup=global_menu_reply())
-    elif recipient_currency == "ETH":
-        await state.update_data(sender_currency="ETH")
-        await state.set_state(TransferState.tg_id.state)
-        await message.answer("Введите айди получателя:", reply_markup=global_menu_reply())
-    elif recipient_currency == "ADA":
-        await state.update_data(sender_currency="ADA")
-        await state.set_state(TransferState.tg_id.state)
-        await message.answer("Введите айди получателя:", reply_markup=global_menu_reply())
-    elif recipient_currency == "BNB":
-        await state.update_data(sender_currency="BNB")
-        await state.set_state(TransferState.tg_id.state)
-        await message.answer("Введите айди получателя:", reply_markup=global_menu_reply())
-    elif recipient_currency == "XRP":
-        await state.update_data(sender_currency="XRP")
-        await state.set_state(TransferState.tg_id.state)
-        await message.answer("Введите айди получателя:", reply_markup=global_menu_reply())
-    elif recipient_currency == "DOGE":
-        await state.update_data(sender_currency="DOGE")
-        await state.set_state(TransferState.tg_id.state)
-        await message.answer("Введите айди получателя:", reply_markup=global_menu_reply())
     else:
-        await message.answer("Такого варианта ответа нету")
+        sender_currency = sender_currency.split(" ")[0]
+        for i in currency:
+            if i == sender_currency:
+                sender_amount = float(message.text.split(" ")[2])
+                if sender_amount == 0:
+                    await message.answer(f"У вас на балансе 0.0 {sender_currency}, выберите другой кошелек для перевода: ")
+                    qwe = True
+                else:
+                    qwe = True
+                    await state.update_data(sender_currency=sender_currency)
+                    await state.set_state(TransferState.tg_id.state)
+                    await message.answer("Введите айди получателя:", reply_markup=global_menu_reply())
+            else:
+                pass
+        if qwe == False:
+            await message.answer("Такого варианта ответа нету: ")
+
+
 
 async def get_transfer_id(message: types.Message, state: FSMContext):
     if message.text == 'В меню пользователя':
@@ -272,31 +267,30 @@ async def get_password_tr(message: types.Message, state: FSMContext):
             if valid_password == hash_password:
                 get_data = await state.get_data()
                 usd_recipient = global_currency[f'{get_data["sender_currency"]}'] * get_data['send_amount']
+                res_currency_amount = global_currency[f'{get_data["recipient_currency"]}']
                 if sender_tier == "U":
-                    commission = usd_recipient * 0.1
+                    commission = usd_recipient * 0.1 / res_currency_amount
                     await state.update_data(commission=float("{0:.4f}".format(commission)))
                     usd_recipient = usd_recipient * 0.90
                 elif sender_tier == "B":
-                    commission = usd_recipient * 0.07
+                    commission = usd_recipient * 0.07 / res_currency_amount
                     await state.update_data(commission=float("{0:.4f}".format(commission)))
                     usd_recipient = usd_recipient * 0.93
                 elif sender_tier == "S":
-                    commission = usd_recipient * 0.05
+                    commission = usd_recipient * 0.05 / res_currency_amount
                     await state.update_data(commission=float("{0:.4f}".format(commission)))
                     usd_recipient = usd_recipient * 0.95
                 elif sender_tier == "G":
-                    commission = usd_recipient * 0.03
+                    commission = usd_recipient * 0.03 / res_currency_amount
                     await state.update_data(commission=float("{0:.4f}".format(commission)))
                     usd_recipient = usd_recipient * 0.97
                 elif sender_tier == "A":
                     commission = 0
                     await state.update_data(commission=commission)
-                res_currency_amount = global_currency[f'{get_data["recipient_currency"]}']
                 new_recipient_amount = usd_recipient / res_currency_amount
-
                 new_recipient_amount = new_recipient_amount + get_data['recipient_amount']
                 await state.update_data(new_recipient_amount=float("{0:.4f}".format(new_recipient_amount)))
-                await state.update_data(received_amount=float("{0:.4f}".format((usd_recipient - commission) / res_currency_amount) ))
+                await state.update_data(received_amount=float("{0:.4f}".format(usd_recipient / res_currency_amount)))
                 wallet_data = await state.get_data()
 
                 users_response_wallet = event_service.patch_wallet(wallet_data)
@@ -320,8 +314,6 @@ def setup(dp: Dispatcher):
     """
     dp.register_callback_query_handler(return_user, Text(equals="return_user"))
     dp.register_callback_query_handler(translation, Text(equals="translation"))
-    dp.register_callback_query_handler(translation, Text(equals="transaction_history"))
-    dp.register_callback_query_handler(translation, Text(equals="main"))
 
     dp.register_message_handler(sender_currency, state=TransferState.sender_currency)
     dp.register_message_handler(get_transfer_id, state=TransferState.tg_id)

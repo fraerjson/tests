@@ -9,6 +9,7 @@ from handlers.default_buttons import global_menu
 from handlers.home import setup as home_handler_setup
 from handlers.transfer import setup as transfer_handler_setup
 from handlers.basic import setup as basic_handler_setup
+from handlers.transaction_history import setup as transaction_history_handler_setup
 from handlers.wallets import setup as my_wallets_handler_setup
 
 
@@ -39,14 +40,9 @@ async def get_admin_commands(msg: types.Message):
     await msg.answer("Главное меню: ", reply_markup=global_menu())
 
 
-@dp.callback_query_handler(Text(contains="description"))
-async def market(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()
-    inline_kb = types.InlineKeyboardMarkup(row_width=1)
-    inline_kb.add(types.InlineKeyboardButton("В меню", callback_data="home"))
-    await callback.message.answer("Тут нихуя нету, иди нахуй", reply_markup=inline_kb)
 
-@dp.callback_query_handler(Text(contains="home"))
+
+@dp.callback_query_handler(Text(equals="home"))
 async def return_handler(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
     inline_kb = types.InlineKeyboardMarkup(row_width=1)
@@ -60,6 +56,7 @@ home_handler_setup(dp)
 transfer_handler_setup(dp)
 basic_handler_setup(dp)
 my_wallets_handler_setup(dp)
+transaction_history_handler_setup(dp)
 
 
 executor.start_polling(dp, skip_updates=True, on_startup=startup)

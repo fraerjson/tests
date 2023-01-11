@@ -8,6 +8,7 @@ global_currency ={
     'DOGE': 0.07,
     'ADA': 0.26,
 }
+
 class EventPlaygroundService:
     limit = 5
     base_url = "http://localhost:8000/api/"
@@ -69,6 +70,10 @@ class EventPlaygroundService:
         response = requests.patch(f"{self.base_url}walletid/{wallet_data['recipient_wallet_id']}", json=validate_wallet_data)
         return response.json()
 
+    def patch_user(self, user_data):
+        response = requests.patch(f"{self.base_url}user/{user_data['user_id']}", json=user_data)
+        return response.json()
+
     def post_transactions(self, wallet_data):
         validate_wallet_data = {
             'sender': wallet_data['sender'],
@@ -104,9 +109,17 @@ class EventPlaygroundService:
     def delete_wallet(self, wallet_data):
         response = requests.delete(f"{self.base_url}walletid/{wallet_data['wallet_id']}", )
 
+    def find_transaction(self, transaction_data):
+        query_params = dict(sender=transaction_data['sender'])
+        response_1 = requests.get(f"{self.base_url}findtransaction/", params=query_params)
+        query_params = dict(recipient=transaction_data['recipient'])
+        response_2 = requests.get(f"{self.base_url}findtransaction/", params=query_params)
+        response = response_2.json() + response_1.json()
+        return response
 
-event_service = EventPlaygroundService()
-
+    def get_transaction_data(self, transaction_data):
+        response = requests.get(f"{self.base_url}transaction/{transaction_data['id']}")
+        return response
 
 
 event_service = EventPlaygroundService()

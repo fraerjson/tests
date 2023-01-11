@@ -2,9 +2,9 @@ import hashlib
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
 import re
-from handlers.default_buttons import *
+from handlers.default_buttons import first_menu, global_menu_reply, global_menu
 from services.event_playground import event_service
-from states.tier_state import RegistrationState, AuthorizationState, OutState, TransferState
+from states.tier_state import RegistrationState, AuthorizationState
 from aiogram import Dispatcher, types
 
 """
@@ -12,14 +12,13 @@ from aiogram import Dispatcher, types
 """
 
 async def authorization(callback: types.CallbackQuery, state: FSMContext):
-    print(callback.data)
     await callback.message.delete()
     await state.set_state(AuthorizationState.number.state)
     await callback.message.answer("Введите номер телефона: ", reply_markup=global_menu_reply())
 
 
 async def get_number(msg: types.Message, state: FSMContext):
-    if msg.text == 'Вернуться в меню':
+    if msg.text == 'В меню пользователя':
         await msg.answer("Choose admin action", reply_markup=first_menu())
         await state.finish()
     else:
@@ -34,7 +33,7 @@ async def get_number(msg: types.Message, state: FSMContext):
 
 
 async def get_password(msg: types.Message, state: FSMContext):
-    if msg.text == 'Вернуться в меню':
+    if msg.text == 'В меню пользователя':
         await msg.answer("Choose admin action", reply_markup=first_menu())
         await state.finish()
     else:
@@ -48,9 +47,7 @@ async def get_password(msg: types.Message, state: FSMContext):
             await msg.answer("Главное меню", reply_markup=global_menu())
             await state.finish()
         else:
-            await msg.answer("Еблан, введи норм данные")
-            await state.set_state(AuthorizationState.number.state)
-            await msg.answer("Введите номер телефона: ")
+            await msg.answer("Неверно введен пароль, повторите попытку: ")
 
 
 """
@@ -71,7 +68,7 @@ async def registration(callback: types.CallbackQuery, state: FSMContext):
 
 
 async def get_name(msg: types.Message, state: FSMContext):
-    if msg.text == 'Вернуться в меню':
+    if msg.text == 'В меню пользователя':
         await msg.answer("Choose admin action", reply_markup=first_menu())
         await state.finish()
     else:
@@ -91,7 +88,7 @@ async def get_name(msg: types.Message, state: FSMContext):
 
 
 async def get_phone(msg: types.Message, state: FSMContext):
-    if msg.text == 'Вернуться в меню':
+    if msg.text == 'В меню пользователя':
         await msg.answer("Choose admin action", reply_markup=first_menu())
         await state.finish()
     else:
@@ -110,7 +107,7 @@ async def get_phone(msg: types.Message, state: FSMContext):
             await msg.answer("Введите коректные данные: ")
 
 async def get_aut_password(msg: types.Message, state: FSMContext):
-    if msg.text == 'Вернуться в меню':
+    if msg.text == 'В меню пользователя':
         await msg.answer("Choose admin action", reply_markup=first_menu())
         await state.finish()
     else:
@@ -136,12 +133,24 @@ async def get_aut_password(msg: types.Message, state: FSMContext):
 """
 
 async def description(callback: types.CallbackQuery, state: FSMContext):
-    await state.set_state(RegistrationState.name.state)
+    await callback.message.delete()
     inline_kb = types.InlineKeyboardMarkup(row_width=1)
     inline_kb.add(types.InlineKeyboardButton("Return", callback_data="return"))
-    await callback.message.edit_text("Описание: \n\nТут нихуя нету, иди нахуй", reply_markup=inline_kb)
-
-
+    await callback.message.answer(
+        """
+        Рады приветствовать вас в нашем Telegram боте. 
+        Бот является симулятором криптобиржы, с многочисленными функциями.
+        При регистрации вам даеться 10000 USD.
+        Ваша задача путем перепродажи криптовалют, заработать как можно больше денег и войти в топы игроков на сервере!
+        Так же вы можете отбмениваться маржой с друзьями.
+        Приглашай друзей и сражайтесь вместе за величие на крипто бирже!
+        Удачи!!!
+        Связь: tg: @manera_a
+        """, reply_markup=inline_kb)
+async def return_on_main_menu(callback: types.CallbackQuery, state: FSMContext):
+    await callback.message.delete()
+    await callback.message.answer("Choose admin action", reply_markup=first_menu())
+    await state.finish()
 """
 ГЛАВНОЕ МЕНЮ
 """
@@ -164,6 +173,7 @@ def setup(dp: Dispatcher):
     """
     НАЧАЛЬНОЕ МЕНЮ
     """
-    dp.register_callback_query_handler(authorization, Text(contains="authorization"))
-    dp.register_callback_query_handler(registration, Text(contains="registration"))
-    dp.register_callback_query_handler(description, Text(contains="description"))
+    dp.register_callback_query_handler(return_on_main_menu, Text(equals="return"))
+    dp.register_callback_query_handler(authorization, Text(equals="authorization"))
+    dp.register_callback_query_handler(registration, Text(equals="registration"))
+    dp.register_callback_query_handler(description, Text(equals="description"))
